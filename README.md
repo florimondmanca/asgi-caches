@@ -1,5 +1,9 @@
 # asgi-caches
 
+[![Build Status](https://travis-ci.com/florimondmanca/asgi-caches.svg?branch=master)](https://travis-ci.com/florimondmanca/asgi-caches)
+[![Coverage](https://codecov.io/gh/florimondmanca/asgi-caches/branch/master/graph/badge.svg)](https://codecov.io/gh/florimondmanca/asgi-caches)
+[![Package version](https://badge.fury.io/py/asgi-caches.svg)](https://pypi.org/project/asgi-caches)
+
 `asgi-caches` provides middleware and utilities for adding caching to ASGI applications. It is based on [async-caches](https://rafalp.github.io/async-caches/), and inspired by Django's cache framework.
 
 > **Note**: this project is in a "planning" status. Most of the features still need to be implemented.
