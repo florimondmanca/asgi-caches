@@ -26,7 +26,7 @@ from caches import Cache
 from starlette.applications import Starlette
 
 app = Starlette()
-cache = Cache(key_prefix="my-app", ttl=2 * 60)
+cache = Cache("locmem://null", key_prefix="my-app", ttl=2 * 60)
 app.add_event_handler("startup", cache.connect)
 app.add_event_handler("shutdown", cache.disconnect)
 ```
