@@ -56,6 +56,8 @@ class UserDetail(HTTPEndpoint):
 
 Note that since the `@cached` decorator actually works on any ASGI application, the snippet above uses a Starlette [endpoint](https://www.starlette.io/endpoints/) instead of a function-based view. (As a consequence, applying `@cached` to methods of an endpoint class is not supported. This should not be a problem, because caching is only ever applied to GET and HEAD operations.)
 
+### Disabling caching (TODO)
+
 To disable caching altogether on a given endpoint, use the `@never_cache` decorator:
 
 ```python
