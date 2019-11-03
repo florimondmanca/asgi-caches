@@ -2,6 +2,8 @@
 
 `asgi-caches` provides middleware and utilities for adding caching to ASGI applications. It is based on [async-caches](https://rafalp.github.io/async-caches/), and inspired by Django's cache framework.
 
+> **Note**: this project is in a "planning" status. Most of the features still need to be implemented.
+
 ## Features
 
 - Compatible with any ASGI application (e.g. Starlette, FastAPI, Quart, etc.).
