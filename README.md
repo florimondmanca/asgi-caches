@@ -56,13 +56,13 @@ class UserDetail(HTTPEndpoint):
 
 Note that since the `@cached` decorator actually works on any ASGI application, the snippet above uses a Starlette [endpoint](https://www.starlette.io/endpoints/) instead of a function-based view. (As a consequence, applying `@cached` to methods of an endpoint class is not supported. This should not be a problem, because caching is only ever applied to GET and HEAD operations.)
 
-To disable caching altogether on a given view, use the `@never_cache` decorator:
+To disable caching altogether on a given endpoint, use the `@never_cache` decorator:
 
 ```python
 from datetime import datetime
-from starlette.endpoints import HTTPEndpoint
-from asgi_caches.decorators import cached
+from asgi_caches.decorators import never_cache
 
+@app.route("/datetime")
 @never_cache
 class DateTime(HTTPEndpoint):
     async def get(self, request):
@@ -86,7 +86,6 @@ You can override the TTL on a per-view basis using the `ttl` parameter, e.g.:
 
 ```python
 import math
-from starlette.endpoints import HTTPEndpoint
 from starlette.responses import JSONResponse
 from asgi_caches.decorators import cached
 
@@ -104,7 +103,7 @@ You can use the `@cache_control()` decorator to add cache control directives to 
 One typical use case is cache privacy. If your view returns sensitive information to clients (e.g. a bank account number), you will probably want to mark its cache as `private`. This is how to do it:
 
 ```python
-from asgi_caches.contrib.starlette.decorators import cache_control
+from asgi_caches.decorators import cache_control
 
 @app.route("/accounts/{account_id}")
 @cache_control(private=True)
@@ -120,7 +119,7 @@ Alternatively, you can explicitly mark a cache as public with `public=True`.
 Besides, `@cache_control()` accepts any valid `Cache-Control` directives. For example, [`max-age`](https://tools.ietf.org/html/rfc7234.html#section-5.2.2.8) controls the amount of time clients should cache the response:
 
 ```python
-from asgi_caches.contrib.starlette.decorators import cache_control
+from asgi_caches.decorators import cache_control
 
 @app.route("/weather_reports/today")
 @cache_control(max_age=3600)
