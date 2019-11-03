@@ -24,28 +24,34 @@ from asgi_caches.middleware import CacheMiddleware
 app.add_middleware(CacheMiddleware, cache=cache)
 ```
 
-### Per-view caching (TODO)
+### Per-endpoint caching (TODO)
 
-> **Note**: this is currently only available for Starlette (or, more precisely, frameworks whose views have the same signature as Starlette's, i.e. `async (Request) -> Response`).
+You can specify the cache policy on a given endpoint using the `@cached` decoraotr:
 
 ```python
-from asgi_caches.contrib.starlette.decorators import cache_view
+from starlette.endpoints import HTTPEndpoint
+from asgi_caches.decorators import cached
 
 @app.route("/users/{user_id:int}")
-@cache_view(cache)
-async def get_user(request):
-    ...
+@cached(cache)
+class UserDetail(HTTPEndpoint):
+    async def get(self, request):
+        ...
 ```
+
+Note that the `@cached` decorator actually works on any ASGI application, which is why this example uses Starlette [endpoints](https://www.starlette.io/endpoints/) instead of function-based views. As a consequence, applying `@cached` to methods of an endpoint class is not supported (but this should not be a problem because caching is only ever applied to GET and HEAD operations).
 
 To disable caching altogether on a given view, use the `@never_cache` decorator:
 
 ```python
 from datetime import datetime
-from asgi_caches.contrib.starlette.decorators import never_cache
+from starlette.endpoints import HTTPEndpoint
+from asgi_caches.decorators import cached
 
 @never_cache
-async def my_view(request):
-    return JSONResponse({"time": datetime.now().utcformat()})
+class DateTime(HTTPEndpoint):
+    async def get(self, request):
+        return JSONResponse({"time": datetime.now().utcformat()})
 ```
 
 ### Time to live (TODO)
@@ -65,12 +71,15 @@ You can override the TTL on a per-view basis using the `ttl` parameter, e.g.:
 
 ```python
 import math
+from starlette.endpoints import HTTPEndpoint
 from starlette.responses import JSONResponse
+from asgi_caches.decorators import cached
 
 @app.route("/pi")
-@cache_view(cache, ttl=None)  # Cache forever
-async def get_pi(request):
-    return JSONResponse({"value": math.pi})
+@cached(cache, ttl=None)  # Cache forever
+class Pi(HTTPEndpoint):
+    async def get(self, request):
+        return JSONResponse({"value": math.pi})
 ```
 
 ### Cache control (TODO)
@@ -82,9 +91,11 @@ One typical use case is cache privacy. If your view returns sensitive informatio
 ```python
 from asgi_caches.contrib.starlette.decorators import cache_control
 
+@app.route("/accounts/{account_id}")
 @cache_control(private=True)
-async def get_bank_account(request):
-    ...
+class BankAccountDetail(HTTPEndpoint):
+    async def get(self, request):
+        ...
 ```
 
 Alternatively, you can explicitly mark a cache as public with `public=True`.
@@ -96,9 +107,11 @@ Besides, `@cache_control()` accepts any valid `Cache-Control` directives. For ex
 ```python
 from asgi_caches.contrib.starlette.decorators import cache_control
 
+@app.route("/weather_reports/today")
 @cache_control(max_age=3600)
-async def my_view(request):
-    ...
+class DailyWeatherReport(HTTPEndpoint):
+    async def get(self, request):
+        ...
 ```
 
 Other example directives:
