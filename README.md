@@ -75,14 +75,14 @@ class DateTime(HTTPEndpoint):
 
 Time to live (TTL) refers to how long (in seconds) a response can stay in the cache before it expires.
 
-Components in `asgi-cache` will use whichever TTL is set on the `Cache` instance by default:
+Components in `asgi-caches` will use whichever TTL is set on the `Cache` instance by default:
 
 ```python
 # Cache for 2 minutes by default.
 cache = Cache(ttl=2 * 60)
 ```
 
-> See also: [Async Caches: Default time to live](https://rafalp.github.io/async-caches/backends/#default-time-to-live).
+(See also [Default time to live](https://rafalp.github.io/async-caches/backends/#default-time-to-live) in the `async-caches` documentation.)
 
 You can override the TTL on a per-view basis using the `ttl` parameter, e.g.:
 
