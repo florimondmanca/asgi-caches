@@ -19,7 +19,7 @@
 
 ## Usage
 
-We'll use this sample [Starlette](https://www.starlete.io) application as a supporting example:
+We'll use this sample [Starlette](https://www.starlete.io) application equipped with an in-memory cache as a supporting example:
 
 ```python
 from caches import Cache
@@ -79,7 +79,7 @@ Components in `asgi-caches` will use whichever TTL is set on the `Cache` instanc
 
 ```python
 # Cache for 2 minutes by default.
-cache = Cache(ttl=2 * 60)
+cache = Cache("locmem://null", ttl=2 * 60)
 ```
 
 (See also [Default time to live](https://rafalp.github.io/async-caches/backends/#default-time-to-live) in the `async-caches` documentation.)
