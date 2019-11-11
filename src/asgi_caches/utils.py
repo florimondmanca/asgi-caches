@@ -51,6 +51,9 @@ async def store_in_cache(response: Response, *, request: Request, cache: Cache) 
     if not request.cookies and "Set-Cookie" in response.headers:
         raise ResponseNotCachable(response)
 
+    if cache.ttl == 0:
+        raise ResponseNotCachable(response)
+
     if cache.ttl is None:
         # From section 14.12 of RFC2616:
         # "HTTP/1.1 servers SHOULD NOT send Expires dates more than

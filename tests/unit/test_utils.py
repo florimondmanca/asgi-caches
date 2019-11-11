@@ -95,6 +95,23 @@ async def test_non_cachable_status_codes(cache: Cache, status_code: int) -> None
         await store_in_cache(response, request=request, cache=cache)
 
 
+async def test_non_cachable_zero_ttl(cache: Cache) -> None:
+    """
+    We shouldn't bother caching if the cache TTL is zero.
+    """
+    cache.ttl = 0
+    scope: Scope = {
+        "type": "http",
+        "method": "GET",
+        "path": "/path",
+        "headers": [],
+    }
+    request = Request(scope)
+    response = PlainTextResponse("Hello, world!")
+    with pytest.raises(ResponseNotCachable):
+        await store_in_cache(response, request=request, cache=cache)
+
+
 async def test_get_from_cache(cache: Cache) -> None:
     scope: Scope = {
         "type": "http",
