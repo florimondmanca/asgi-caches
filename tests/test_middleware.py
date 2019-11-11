@@ -224,3 +224,32 @@ async def test_vary() -> None:
         assert r2.headers["Content-Encoding"] == "gzip"
         assert "Expires" in r.headers
         assert "Cache-Control" in r.headers
+
+
+@pytest.mark.asyncio
+async def test_cookies_in_response_and_cookieless_request() -> None:
+    """
+    Responses that set cookies shouldn't be cached
+    if the request doesn't have cookies.
+    """
+    cache = Cache("locmem://null")
+
+    async def app(scope: Scope, receive: Receive, send: Send) -> None:
+        response = PlainTextResponse("Hello, world!")
+        response.set_cookie("session_id", "1234")
+        await response(scope, receive, send)
+
+    spy = CacheSpy(app)
+    app = CacheMiddleware(spy, cache=cache)
+    client = httpx.AsyncClient(app=app, base_url="http://testserver")
+
+    async with cache, client:
+        r = await client.get("/")
+        assert r.status_code == 200
+        assert r.text == "Hello, world!"
+        assert spy.misses == 1
+
+        r = await client.get("/")
+        assert r.status_code == 200
+        assert r.text == "Hello, world!"
+        assert spy.misses == 2
