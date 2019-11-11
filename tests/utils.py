@@ -12,7 +12,7 @@ async def mock_send(message: Message) -> None:
     raise NotImplementedError  # pragma: no cover
 
 
-class ComparableResponse:
+class ComparableStarletteResponse:
     # As of 0.12, Starlette does not provide a '.__eq__()' implementation
     # for responses yet.
 

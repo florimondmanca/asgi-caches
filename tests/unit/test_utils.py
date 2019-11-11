@@ -14,7 +14,7 @@ from asgi_caches.utils import (
     get_from_cache,
     store_in_cache,
 )
-from tests.utils import ComparableResponse
+from tests.utils import ComparableStarletteResponse
 
 pytestmark = pytest.mark.asyncio
 
@@ -76,7 +76,7 @@ async def test_store_in_cache(cache: Cache) -> None:
     assert key is not None
 
     cached_response = deserialize_response(await cache.get(key))
-    assert ComparableResponse(cached_response) == response
+    assert ComparableStarletteResponse(cached_response) == response
 
 
 @pytest.mark.parametrize(
@@ -108,7 +108,7 @@ async def test_get_from_cache(cache: Cache) -> None:
 
     cached_response = await get_from_cache(request, cache=cache)
     assert cached_response is not None
-    assert ComparableResponse(cached_response) == response
+    assert ComparableStarletteResponse(cached_response) == response
     assert "Expires" in cached_response.headers
     assert "Cache-Control" in cached_response.headers
 
@@ -169,7 +169,7 @@ async def test_get_from_cache_head(cache: Cache) -> None:
 
     cached_response = await get_from_cache(request, cache=cache)
     assert cached_response is not None
-    assert ComparableResponse(cached_response) == response
+    assert ComparableStarletteResponse(cached_response) == response
 
 
 async def test_get_from_cache_different_path(cache: Cache) -> None:
