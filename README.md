@@ -31,13 +31,19 @@ app.add_event_handler("startup", cache.connect)
 app.add_event_handler("shutdown", cache.disconnect)
 ```
 
-### Application-wide caching (TODO)
+### Application-wide caching
+
+To cache all endpoints, wrap the application around `CacheMiddleware`:
 
 ```python
 from asgi_caches.middleware import CacheMiddleware
 
 app.add_middleware(CacheMiddleware, cache=cache)
 ```
+
+This middleware applies the `Cache-Control` and `Expires` headers based on the cache `ttl` (see also [Time to live](#time-to-live)). These headers tell the browser how and for how long it should cache responses.
+
+If you have multiple middleware, read [Order of middleware](#order-of-middleware) to know at which point in the stack `CacheMiddleware` should be applied.
 
 ### Per-endpoint caching (TODO)
 
@@ -71,7 +77,7 @@ class DateTime(HTTPEndpoint):
         return JSONResponse({"time": datetime.now().utcformat()})
 ```
 
-### Time to live (TODO)
+### Time to live
 
 Time to live (TTL) refers to how long (in seconds) a response can stay in the cache before it expires.
 
@@ -84,7 +90,7 @@ cache = Cache("locmem://null", ttl=2 * 60)
 
 (See also [Default time to live](https://rafalp.github.io/async-caches/backends/#default-time-to-live) in the `async-caches` documentation.)
 
-You can override the TTL on a per-view basis using the `ttl` parameter, e.g.:
+(TODO) You can override the TTL on a per-view basis using the `ttl` parameter, e.g.:
 
 ```python
 import math
@@ -137,6 +143,23 @@ Other example directives:
 - `stale_while_revalidate=num_seconds`
 
 See [RFC7234](https://tools.ietf.org/html/rfc7234.html) (Caching) for more information, and the [HTTP Cache Directive Registry](https://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtml) for the list of valid cache directives (note not all apply to responses).
+
+### Order of middleware
+
+The cache middleware uses the `Vary` header present in responses to know by which request header it should vary the cache. For example, if a response contains `Vary: Accept-Encoding`, a request containing `Accept-Encoding: gzip` won't result in using the same cache entry than a request containing `Accept-Encoding: identity`.
+
+As a result of this mechanism, there are some rules relative to which point in the middleware stack cache middleware should be applied:
+
+- `CacheMiddleware` should be applied *after* middleware that modifies the `Vary` header. For example:
+
+```python
+from starlette.middleware.gzip import GZipMiddleware
+
+app.add_middleware(GZipMiddleware)  # Adds 'Accept-Encoding'
+app.add_middleware(CacheMiddleware, cache=cache)
+```
+
+- Similarly, it should be applied *before* middleware that may add something to the varying headers of the request. (As a contrived example, if you had a middleware that added `gzip` to `Accept-Encoding` to later decompress the resulting response body, then you'd need to place this middleware *before* `CacheMiddleware`.)
 
 ## Credits
 
