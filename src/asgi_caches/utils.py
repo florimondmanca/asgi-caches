@@ -56,7 +56,7 @@ async def store_in_cache(response: Response, *, request: Request, cache: Cache) 
     else:
         max_age = cache.ttl
 
-    patch_response_headers(response, max_age=max_age)
+    response.headers.update(get_cache_response_headers(response, max_age=max_age))
 
     cache_key = await learn_cache_key(request, response, cache=cache)
     serialized_response = serialize_response(response)
@@ -227,11 +227,15 @@ def http_date(epoch_time: float) -> str:
     return email.utils.formatdate(epoch_time, usegmt=True)
 
 
-def patch_response_headers(response: Response, max_age: int) -> None:
-    """Add caching-related headers to a response ("Expires" and "Cache-Control")."""
+def get_cache_response_headers(
+    response: Response, *, max_age: int
+) -> typing.Dict[str, str]:
     assert max_age >= 0, "Can't have a negative cache max-age"
+    headers = {}
 
     if "Expires" not in response.headers:
-        response.headers["Expires"] = http_date(time.time() + max_age)
+        headers["Expires"] = http_date(time.time() + max_age)
 
-    response.headers["Cache-Control"] = f"max-age={max_age}"
+    headers["Cache-Control"] = f"max-age={max_age}"
+
+    return headers
