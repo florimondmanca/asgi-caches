@@ -42,7 +42,7 @@ async def test_cache_response() -> None:
         expires_fmt = "%a, %d %b %Y %H:%M:%S GMT"
         expires = dt.datetime.strptime(r.headers["Expires"], expires_fmt)
         delta: dt.timedelta = expires - dt.datetime.utcnow()
-        assert delta.total_seconds() == pytest.approx(120, abs=1)
+        assert delta.total_seconds() == pytest.approx(120, rel=1e-2)
         assert "Cache-Control" in r.headers
         assert r.headers["Cache-Control"] == "max-age=120"
 
