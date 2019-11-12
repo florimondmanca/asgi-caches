@@ -5,7 +5,7 @@ import typing
 
 import httpx
 from starlette.responses import Response
-from starlette.types import Message
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 import asgi_caches.utils.logging
 
@@ -16,6 +16,16 @@ async def mock_receive() -> Message:
 
 async def mock_send(message: Message) -> None:
     raise NotImplementedError  # pragma: no cover
+
+
+class CacheSpy:
+    def __init__(self, app: ASGIApp):
+        self.app = app
+        self.misses = 0
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        self.misses += 1
+        await self.app(scope, receive, send)
 
 
 class ComparableStarletteResponse:

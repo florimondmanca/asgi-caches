@@ -7,20 +7,10 @@ import pytest
 from caches import Cache
 from starlette.datastructures import Headers
 from starlette.responses import PlainTextResponse, StreamingResponse
-from starlette.types import ASGIApp, Receive, Scope, Send
+from starlette.types import Receive, Scope, Send
 
 from asgi_caches.middleware import CacheMiddleware
-from tests.utils import ComparableHTTPXResponse, mock_receive, mock_send
-
-
-class CacheSpy:
-    def __init__(self, app: ASGIApp):
-        self.app = app
-        self.misses = 0
-
-    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        self.misses += 1
-        await self.app(scope, receive, send)
+from tests.utils import CacheSpy, ComparableHTTPXResponse, mock_receive, mock_send
 
 
 @pytest.mark.asyncio
