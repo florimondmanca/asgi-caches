@@ -20,7 +20,10 @@ def get_long_description() -> str:
 setup(
     name="asgi-caches",
     version=get_version("asgi_caches"),
-    description="Caching for ASGI applications, inspired by Django's cache framework",
+    description=(
+        "Server-side HTTP caching for ASGI applications, "
+        "inspired by Django's cache framework"
+    ),
     long_description=get_long_description(),
     long_description_content_type="text/markdown",
     url="http://github.com/florimondmanca/asgi-caches",
