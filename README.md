@@ -167,7 +167,7 @@ app.add_middleware(CacheMiddleware, cache=cache)
 
 - Similarly, it should be applied *before* middleware that may add something to the varying headers of the request. (As a contrived example, if you had a middleware that added `gzip` to `Accept-Encoding` to later decompress the resulting response body, then you'd need to place this middleware *before* `CacheMiddleware`.)
 
-## Debugging
+### Debugging
 
 If you'd like to see more of what `asgi-caches` is doing, for example to investigate a bug, you can turn on debugging logs.
 
