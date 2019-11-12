@@ -93,8 +93,8 @@ async def get_from_cache(
     # If not present, fallback to look for a cached HEAD response.
     if serialized_response is None:
         cache_key = await get_cache_key(request, method="HEAD", cache=cache)
-        if cache_key is not None:
-            serialized_response = await cache.get(cache_key)
+        assert cache_key is not None
+        serialized_response = await cache.get(cache_key)
 
     if serialized_response is None:
         return None
