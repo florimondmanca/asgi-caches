@@ -6,7 +6,7 @@ from starlette.responses import Response
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from .exceptions import RequestNotCachable, ResponseNotCachable
-from .utils import get_from_cache, store_in_cache
+from .utils.cache import get_from_cache, store_in_cache
 
 
 class CacheMiddleware:

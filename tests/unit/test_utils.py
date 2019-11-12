@@ -8,7 +8,7 @@ from starlette.responses import PlainTextResponse
 from starlette.types import Scope
 
 from asgi_caches.exceptions import RequestNotCachable, ResponseNotCachable
-from asgi_caches.utils import (
+from asgi_caches.utils.cache import (
     deserialize_response,
     get_cache_key,
     get_from_cache,

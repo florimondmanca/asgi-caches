@@ -9,8 +9,6 @@ defined in this module:
 * `get_from_cache()` retrieves and uses this cache key for a new `request`.
 """
 
-import base64
-import email.utils
 import hashlib
 import time
 import typing
@@ -20,7 +18,8 @@ from caches import Cache
 from starlette.requests import Request
 from starlette.responses import Response
 
-from .exceptions import RequestNotCachable, ResponseNotCachable
+from ..exceptions import RequestNotCachable, ResponseNotCachable
+from .misc import bytes_to_json_string, http_date, json_string_to_bytes
 
 CACHABLE_METHODS = frozenset(("GET", "HEAD"))
 CACHABLE_STATUS_CODES = frozenset((200, 304))
@@ -104,33 +103,14 @@ async def get_from_cache(
     return response
 
 
-def json_encode_bytes(data: bytes) -> str:
-    """
-    Given binary data, return a string representation
-    that can be safely used in a JSON object.
-    """
-    # NOTE: we can't just return 'data.decode()', because that won't work
-    # if 'data' is not in a given encoding (e.g. utf-8), as is the case
-    # when using gzip compression.
-    return base64.encodebytes(data).decode("ascii")
-
-
-def json_decode_bytes(value: str) -> bytes:
-    """
-    Given a previously-computed JSON-compatible string representation of
-    binary data, return the original binary data.
-    """
-    return base64.decodebytes(value.encode("ascii"))
-
-
 def serialize_response(response: Response) -> dict:
-    """Convert a response to a JSON-compatible format.
+    """Convert a response to JSON format.
 
-    This is required as async-caches dumps values to JSON before storing them
-    in the cache system.
+    (This is required as `async-caches` dumps values to JSON before storing them
+    in the cache system.)
     """
     return {
-        "content": json_encode_bytes(response.body),
+        "content": bytes_to_json_string(response.body),
         "status_code": response.status_code,
         "headers": dict(response.headers),
     }
@@ -138,11 +118,11 @@ def serialize_response(response: Response) -> dict:
 
 def deserialize_response(serialized_response: dict) -> Response:
     """
-    Given the JSON-compatible representation of a response, re-build the
+    Given the JSON representation of a response, re-build the
     original response object.
     """
     return Response(
-        content=json_decode_bytes(serialized_response["content"]),
+        content=json_string_to_bytes(serialized_response["content"]),
         status_code=serialized_response["status_code"],
         headers=serialized_response["headers"],
     )
@@ -218,24 +198,17 @@ def generate_cache_key(
 def generate_varying_headers_cache_key(request: Request, cache: Cache) -> str:
     """
     Return a cache key generated from the requested absolute URL, suitable for
-    associated varying headers to a requested URL.
+    associating varying headers to a requested URL.
     """
     url = request.url.path
     url_hash = hashlib.md5(url.encode("ascii"))
     return cache.make_key(f"varying_headers.{url_hash.hexdigest()}")
 
 
-def http_date(epoch_time: float) -> str:
-    """Return a formatted date, for use in HTTP headers.
-
-    See: https://tools.ietf.org/html/rfc7231#section-7.1.1.2
-    """
-    return email.utils.formatdate(epoch_time, usegmt=True)
-
-
 def get_cache_response_headers(
     response: Response, *, max_age: int
 ) -> typing.Dict[str, str]:
+    """Return caching-related headers to add to a response."""
     assert max_age >= 0, "Can't have a negative cache max-age"
     headers = {}
 
