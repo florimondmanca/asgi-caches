@@ -167,6 +167,32 @@ app.add_middleware(CacheMiddleware, cache=cache)
 
 - Similarly, it should be applied *before* middleware that may add something to the varying headers of the request. (As a contrived example, if you had a middleware that added `gzip` to `Accept-Encoding` to later decompress the resulting response body, then you'd need to place this middleware *before* `CacheMiddleware`.)
 
+## Debugging
+
+If you'd like to see more of what `asgi-caches` is doing, for example to investigate a bug, you can turn on debugging logs.
+
+To do this, you can set the `ASGI_CACHES_LOG_LEVEL` environment variable to one of the following values (case insensitive):
+
+- `debug`: general-purpose output on cache hits, cache misses, and storage of responses in the cache.
+- `trace`: very detailed output on what operations are performed (e.g. calls to the remote cache system, computation of cache keys, reasons why responses are not cached, etc).
+
+Note that if using [Uvicorn](https://www.uvicorn.org) or another logging-aware program, logs may be activated (perhaps with a different formatting) even if the environment variable is not set. (For example, Uvicorn will activate debug logs when run with `--log-level=debug`.)
+
+Example output when running with [Uvicorn](https://www.uvicorn.org):
+
+```console
+$ uvicorn debug.app:app --log-level=debug
+INFO:     Started server process [95022]
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+DEBUG:    cache_lookup MISS
+DEBUG:    store_in_cache max_age=120
+INFO:     127.0.0.1:59895 - "GET / HTTP/1.1" 200 OK
+DEBUG:    cache_lookup HIT
+INFO:     127.0.0.1:59897 - "GET / HTTP/1.1" 200 OK
+```
+
 ## Credits
 
 Due credit goes to the Django developers and maintainers, as a lot of the API and implementation was directly inspired by the [Django cache framework](https://docs.djangoproject.com/en/2.2/topics/cache/).

@@ -7,6 +7,9 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from .exceptions import RequestNotCachable, ResponseNotCachable
 from .utils.cache import get_from_cache, store_in_cache
+from .utils.logging import HIT_EXTRA, MISS_EXTRA, get_logger
+
+logger = get_logger(__name__)
 
 
 class CacheMiddleware:
@@ -43,8 +46,10 @@ class CacheResponder:
             await self.app(scope, receive, send)
         else:
             if response is not None:
+                logger.debug("cache_lookup %s", "HIT", extra=HIT_EXTRA)
                 await response(scope, receive, send)
                 return
+            logger.debug("cache_lookup %s", "MISS", extra=MISS_EXTRA)
             self.request = request
             self.send = send
             await self.app(scope, receive, self.send_with_caching)
@@ -62,7 +67,7 @@ class CacheResponder:
 
         assert message["type"] == "http.response.body"
         if message.get("more_body", False):
-            # Streaming response.
+            logger.trace("response_not_cachable reason=is_streaming")
             self.is_response_cachable = False
             await self.send(self.initial_message)
             await self.send(message)

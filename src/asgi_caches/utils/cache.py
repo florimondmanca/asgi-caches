@@ -19,7 +19,11 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from ..exceptions import RequestNotCachable, ResponseNotCachable
+from .logging import get_logger
 from .misc import bytes_to_json_string, http_date, json_string_to_bytes
+
+logger = get_logger(__name__)
+
 
 CACHABLE_METHODS = frozenset(("GET", "HEAD"))
 CACHABLE_STATUS_CODES = frozenset((200, 304))
@@ -45,12 +49,15 @@ async def store_in_cache(response: Response, *, request: Request, cache: Cache) 
     different responses.
     """
     if response.status_code not in CACHABLE_STATUS_CODES:
+        logger.trace("response_not_cachable reason=status_code")
         raise ResponseNotCachable(response)
 
     if not request.cookies and "Set-Cookie" in response.headers:
+        logger.trace("response_not_cachable reason=cookies_for_cookieless_request")
         raise ResponseNotCachable(response)
 
     if cache.ttl == 0:
+        logger.trace("response_not_cachable reason=zero_ttl")
         raise ResponseNotCachable(response)
 
     if cache.ttl is None:
@@ -58,13 +65,22 @@ async def store_in_cache(response: Response, *, request: Request, cache: Cache) 
         # "HTTP/1.1 servers SHOULD NOT send Expires dates more than
         # one year in the future."
         max_age = ONE_YEAR
+        logger.trace(f"max_out_ttl value={max_age!r}")
     else:
         max_age = cache.ttl
 
-    response.headers.update(get_cache_response_headers(response, max_age=max_age))
+    logger.debug(f"store_in_cache max_age={max_age!r}")
+
+    cache_headers = get_cache_response_headers(response, max_age=max_age)
+    logger.trace(f"patch_response_headers headers={cache_headers!r}")
+    response.headers.update(cache_headers)
 
     cache_key = await learn_cache_key(request, response, cache=cache)
+    logger.trace(f"learnt_cache_key cache_key={cache_key!r}")
     serialized_response = serialize_response(response)
+    logger.trace(
+        f"store_response_in_cache key={cache_key!r} value={serialized_response!r}"
+    )
     await cache.set(key=cache_key, value=serialized_response)
 
 
@@ -81,24 +97,39 @@ async def get_from_cache(
     A `None` return value indicates that the response for this
     request can (and should) be added to the cache once computed.
     """
+    logger.trace(
+        f"get_from_cache "
+        f"request.url={str(request.url)!r} "
+        f"request.method={request.method!r}"
+    )
     if request.method not in CACHABLE_METHODS:
+        logger.trace("request_not_cachable reason=method")
         raise RequestNotCachable(request)
 
+    logger.trace("lookup_cached_response method='GET'")
     # Try to retrieve the cached GET response (even if this is a HEAD request).
     cache_key = await get_cache_key(request, method="GET", cache=cache)
     if cache_key is None:
+        logger.trace("cache_key found=False")
         return None
+    logger.trace(f"cache_key found=True cache_key={cache_key!r}")
     serialized_response: typing.Optional[dict] = await cache.get(cache_key)
 
     # If not present, fallback to look for a cached HEAD response.
     if serialized_response is None:
+        logger.trace("lookup_cached_response method='HEAD'")
         cache_key = await get_cache_key(request, method="HEAD", cache=cache)
         assert cache_key is not None
+        logger.trace(f"cache_key found=True cache_key={cache_key!r}")
         serialized_response = await cache.get(cache_key)
 
     if serialized_response is None:
+        logger.trace("cached_response found=False")
         return None
 
+    logger.trace(
+        f"cached_response found=True key={cache_key!r} value={serialized_response!r}"
+    )
     response = deserialize_response(serialized_response)
     return response
 
@@ -135,6 +166,11 @@ async def learn_cache_key(request: Request, response: Response, *, cache: Cache)
     Varying response headers are stored at another key based from the
     requested absolute URL.
     """
+    logger.trace(
+        "learn_cache_key "
+        f"request.method={request.method!r} "
+        f"response.headers.Vary={response.headers.get('Vary')!r}"
+    )
     varying_headers_cache_key = generate_varying_headers_cache_key(request, cache=cache)
 
     varying_headers: typing.List[str] = []
@@ -143,6 +179,10 @@ async def learn_cache_key(request: Request, response: Response, *, cache: Cache)
             varying_headers.append(header.lower())
         varying_headers.sort()
 
+    logger.trace(
+        "store_varying_headers "
+        f"cache_key={varying_headers_cache_key!r} headers={varying_headers!r}"
+    )
     await cache.set(key=varying_headers_cache_key, value=varying_headers)
 
     return generate_cache_key(
@@ -158,11 +198,14 @@ async def get_cache_key(
     If this request hasn't been served before, return `None` as there definitely
     won't be any matching cached response.
     """
+    logger.trace(f"get_cache_key request.url={str(request.url)!r} method={method!r}")
     varying_headers_cache_key = generate_varying_headers_cache_key(request, cache=cache)
     varying_headers = await cache.get(varying_headers_cache_key)
 
     if varying_headers is None:
+        logger.trace("varying_headers found=False")
         return None
+    logger.trace(f"varying_headers found=True headers={varying_headers!r}")
 
     return generate_cache_key(
         request, method=method, varying_headers=varying_headers, cache=cache,

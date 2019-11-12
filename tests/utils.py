@@ -1,8 +1,13 @@
+import contextlib
+import logging
+import os
 import typing
 
 import httpx
 from starlette.responses import Response
 from starlette.types import Message
+
+import asgi_caches.utils.logging
 
 
 async def mock_receive() -> Message:
@@ -43,3 +48,18 @@ class ComparableHTTPXResponse:
             and self.response.headers == other.headers
             and self.response.status_code == other.status_code
         )
+
+
+@contextlib.contextmanager
+def override_log_level(log_level: str) -> typing.Iterator[None]:
+    os.environ["ASGI_CACHES_LOG_LEVEL"] = log_level
+
+    # Force a reload on the logging handlers
+    asgi_caches.utils.logging._logger_factory._initialized = False
+    asgi_caches.utils.logging.get_logger("asgi_caches")
+
+    try:
+        yield
+    finally:
+        # Reset the logger so we don't have verbose output in all unit tests
+        logging.getLogger("asgi_caches").handlers = []
