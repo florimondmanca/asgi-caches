@@ -53,7 +53,7 @@ If you have multiple middleware, read [Order of middleware](#order-of-middleware
 
 ### Per-endpoint caching
 
-If your ASGI web framework supports the notion of endpoints (a.k.a. "routes"), you can specify the cache policy on a given endpoint using the `@cached` decorator. The decorator must be applied onto an ASGI callable, and works regardless of whether `CacheMiddleware` is present.
+If your ASGI web framework supports a notion of endpoints (a.k.a. "routes"), you can specify the cache policy on a given endpoint using the `@cached` decorator. This works regardless of whether `CacheMiddleware` is present.
 
 ```python
 from starlette.endpoints import HTTPEndpoint
@@ -66,13 +66,9 @@ class UserDetail(HTTPEndpoint):
         ...
 ```
 
-Again: the decorated object doesn't need to be a Starlette endpoint. It can be any ASGI-compatible callable.
+Note that the decorated object should be an ASGI callable. This is why the code snippet above uses a Starlette [endpoint](https://www.starlette.io/endpoints/) (a.k.a. class-based view) instead of a function-based view. (Starlette endpoints implement the ASGI interface, while function-based views don't.)
 
-(Note that this is precisely why we're using an [endpoint](https://www.starlette.io/endpoints/) (a.k.a. class-based view) instead of a function-based view. Starlette endpoints implement the ASGI interface, while function-based views don't.)
-
-> **Q: can I apply `@cached` to a method of an endpoint class?**
->
-> A: No. This is probably fine, as you shouldn't need to specify which methods support caching: `asgi-caches` will only ever cache GET and HEAD requests.
+Note that you can't apply `@cached` to methods of a class either. This is probably fine though, as you shouldn't need to specify which methods support caching: `asgi-caches` will only ever cache "safe" requests, i.e. GET and HEAD.
 
 ### Disabling caching (TODO)
 
