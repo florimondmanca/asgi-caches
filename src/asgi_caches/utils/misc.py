@@ -2,6 +2,8 @@
 
 import base64
 import email.utils
+import inspect
+import typing
 
 
 def http_date(epoch_time: float) -> str:
@@ -29,3 +31,26 @@ def json_string_to_bytes(value: str) -> bytes:
     binary data, return the original binary data.
     """
     return base64.decodebytes(value.encode("ascii"))
+
+
+def has_asgi3_signature(func: typing.Callable) -> bool:
+    sig = inspect.signature(func)
+    own_parameters = {name for name in sig.parameters if name != "self"}
+    return own_parameters == {"scope", "receive", "send"}
+
+
+def is_asgi3(app: typing.Any) -> bool:
+    """Return whether 'app' corresponds to an ASGI3 callable."""
+    if inspect.isclass(app):
+        constructor = app.__init__  # type: ignore
+        return has_asgi3_signature(constructor) and hasattr(app, "__await__")
+
+    if inspect.isfunction(app):
+        return inspect.iscoroutinefunction(app) and has_asgi3_signature(app)
+
+    try:
+        call = app.__call__
+    except AttributeError:
+        return False
+    else:
+        return inspect.iscoroutinefunction(call) and has_asgi3_signature(call)
