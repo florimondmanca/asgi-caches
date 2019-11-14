@@ -15,6 +15,7 @@ import typing
 from urllib.request import parse_http_list
 
 from caches import Cache
+from starlette.datastructures import MutableHeaders
 from starlette.requests import Request
 from starlette.responses import Response
 
@@ -258,6 +259,54 @@ def get_cache_response_headers(
     if "Expires" not in response.headers:
         headers["Expires"] = http_date(time.time() + max_age)
 
-    headers["Cache-Control"] = f"max-age={max_age}"
+    patch_cache_control(response.headers, max_age=max_age)
 
     return headers
+
+
+def patch_cache_control(headers: MutableHeaders, **kwargs: typing.Any) -> None:
+    """
+    Patch headers with an extended version of the initial Cache-Control header by adding
+    all keyword arguments to it.
+    """
+    cache_control: typing.Dict[str, typing.Any] = {}
+    for field in parse_http_list(headers.get("Cache-Control", "")):
+        try:
+            key, value = field.split("=")
+        except ValueError:
+            cache_control[field] = True
+        else:
+            cache_control[key] = value
+
+    if "max-age" in cache_control and "max_age" in kwargs:
+        kwargs["max_age"] = min(int(cache_control["max-age"]), kwargs["max_age"])
+
+    if "public" in kwargs:
+        raise NotImplementedError(
+            "The 'public' cache control directive isn't supported yet."
+        )
+
+    if "private" in kwargs:
+        raise NotImplementedError(
+            "The 'private' cache control directive isn't supported yet."
+        )
+
+    for key, value in kwargs.items():
+        key = key.replace("_", "-")
+        cache_control[key] = value
+
+    directives: typing.List[str] = []
+    for key, value in cache_control.items():
+        if value is False:
+            continue
+        if value is True:
+            directives.append(key)
+        else:
+            directives.append(f"{key}={value}")
+
+    patched_cache_control = ", ".join(directives)
+
+    if patched_cache_control:
+        headers["Cache-Control"] = patched_cache_control
+    else:
+        del headers["Cache-Control"]

@@ -1,15 +1,25 @@
 import typing
 
 from caches import Cache
+from starlette.datastructures import MutableHeaders
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from .exceptions import RequestNotCachable, ResponseNotCachable
-from .utils.cache import get_from_cache, store_in_cache
+from .utils.cache import get_from_cache, patch_cache_control, store_in_cache
 from .utils.logging import HIT_EXTRA, MISS_EXTRA, get_logger
+from .utils.misc import kvformat
 
 logger = get_logger(__name__)
+
+
+async def unattached_receive() -> Message:
+    raise RuntimeError("receive awaitable not set")  # pragma: no cover
+
+
+async def unattached_send(message: Message) -> None:
+    raise RuntimeError("send awaitable not set")  # pragma: no cover
 
 
 class CacheMiddleware:
@@ -92,9 +102,35 @@ class CacheResponder:
         await self.send(message)
 
 
-async def unattached_receive() -> Message:
-    raise RuntimeError("receive awaitable not set")  # pragma: no cover
+class CacheControlMiddleware:
+    def __init__(self, app: ASGIApp, **kwargs: typing.Any) -> None:
+        self.app = app
+        self.kwargs = kwargs
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        responder = CacheControlResponder(self.app, **self.kwargs)
+        await responder(scope, receive, send)
 
 
-async def unattached_send(message: Message) -> None:
-    raise RuntimeError("send awaitable not set")  # pragma: no cover
+class CacheControlResponder:
+    def __init__(self, app: ASGIApp, **kwargs: typing.Any) -> None:
+        self.app = app
+        self.kwargs = kwargs
+        self.send: Send = unattached_send
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        assert scope["type"] == "http"
+        self.send = send
+        await self.app(scope, receive, self.send_with_caching)
+
+    async def send_with_caching(self, message: Message) -> None:
+        if message["type"] == "http.response.start":
+            logger.trace(f"patch_cache_control {kvformat(**self.kwargs)}")
+            headers = MutableHeaders(raw=list(message["headers"]))
+            patch_cache_control(headers, **self.kwargs)
+            message["headers"] = headers.raw
+
+        await self.send(message)

@@ -112,45 +112,52 @@ class Pi(HTTPEndpoint):
         return JSONResponse({"value": math.pi})
 ```
 
-### Cache control (TODO)
+### Cache control
 
-You can use the `@cache_control()` decorator to add cache control directives to responses. This decorator will set the appropriate headers automatically (e.g. [`Cache-Control`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control)).
+If you'd like to fine-tune how clients should cache the responses of an endpoint, use the `@cache_control()` decorator.
 
-One typical use case is cache privacy. If your view returns sensitive information to clients (e.g. a bank account number), you will probably want to mark its cache as `private`. This is how to do it:
+This decorator can be used independently of `CacheMiddleware`. It will add extra directives to the [`Cache-Control`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) header of the response. Note that if the response already has a `Cache-Control` header, keyword arguments passed to `@cache_control()` will be merged into it, overriding directives that are already present.
+
+Using this decorator is often preferable to manually defining `Cache-Control` on the response, as it will *add* directives instead of replacing the existing ones.
 
 ```python
 from asgi_caches.decorators import cache_control
 
-@app.route("/accounts/{account_id}")
+@app.route("/")
+@cache_control(
+    # Indicate that cache systems MUST refetch
+    # the response once it has expired.
+    must_revalidate=True,
+    # Indicate that cache systems MUST NOT
+    # transform the response (e.g. convert between image formats).
+    no_transform=True,
+)
+class Resource(HTTPEndpoint):
+    async def get(self, request):
+        ...
+```
+
+See also the [HTTP Cache Directive Registry](https://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtml) for a list of valid cache directives (note that not all apply to responses), and the [MDN web docs on `Cache-Control`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) for more information on how to use these directives.
+
+**Limitation**: the `public` and `private` directives are not supported yet -- see below.
+
+#### Cache privacy (TODO)
+
+One particular use case for `@cache_control()` is cache privacy. There may be multiple intermediate caching systems between your server and your clients (e.g. a CDN, the user's ISP, etc.). If an endpoint returns sensitive user data (e.g. a bank account number), you probably want to tell the cache that this data is private, and should not be cached at all.
+
+You can achieve this by using the `private` cache-control directive:
+
+```python
+@app.get("/accounts/{user_id}")
 @cache_control(private=True)
-class BankAccountDetail(HTTPEndpoint):
+class BankAccount(HTTPEndpoint):
     async def get(self, request):
         ...
 ```
 
-Alternatively, you can explicitly mark a cache as public with `public=True`.
+Alternatively, you can explicitly mark a resource as public by passing `public=True`.
 
-(Note that the `public` and `private` directives are mutually exclusive. The decorator ensures that one is removed if the other is set, and vice versa.)
-
-Besides, `@cache_control()` accepts any valid `Cache-Control` directives. For example, [`max-age`](https://tools.ietf.org/html/rfc7234.html#section-5.2.2.8) controls the amount of time clients should cache the response:
-
-```python
-from asgi_caches.decorators import cache_control
-
-@app.route("/weather_reports/today")
-@cache_control(max_age=3600)
-class DailyWeatherReport(HTTPEndpoint):
-    async def get(self, request):
-        ...
-```
-
-Other example directives:
-
-- `no_transform=True`
-- `must_revalidate=True`
-- `stale_while_revalidate=num_seconds`
-
-See [RFC7234](https://tools.ietf.org/html/rfc7234.html) (Caching) for more information, and the [HTTP Cache Directive Registry](https://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtml) for the list of valid cache directives (note not all apply to responses).
+Note that `private` and `public` are exclusive (only one of them can be passed).
 
 ### Order of middleware
 

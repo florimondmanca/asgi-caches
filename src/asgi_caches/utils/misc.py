@@ -54,3 +54,7 @@ def is_asgi3(app: typing.Any) -> bool:
         return False
     else:
         return inspect.iscoroutinefunction(call) and has_asgi3_signature(call)
+
+
+def kvformat(**kwargs: typing.Any) -> str:
+    return " ".join(f"{key}={value}" for key, value in kwargs.items())
