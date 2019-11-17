@@ -89,29 +89,15 @@ class DateTime(HTTPEndpoint):
 
 Time to live (TTL) refers to how long (in seconds) a response can stay in the cache before it expires.
 
-Components in `asgi-caches` will use the TTL set on the `Cache` instance by default:
-
-```python
-# Cache for 2 minutes by default.
-cache = Cache("locmem://null", ttl=2 * 60)
-app.add_middleware(CacheMiddleware, cache=cache)
-```
+Components in `asgi-caches` will use the TTL set on the `Cache` instance by default.
 
 You can override the TTL on a per-view basis by setting the `max-age` cache-control directive (for details, see [Cache control](#cache-control) below):
 
 ```python
-import math
-from starlette.responses import JSONResponse
-from asgi_caches.decorators import cached
-
-cache = Cache("locmem://null", ttl=2 * 60)
-app.add_middleware(CacheMiddleware, cache=cache)
-
-@app.route("/pi")
+@app.route("/constant")
 @cache_control(max_age=60 * 60)  # Cache for one hour.
-class Pi(HTTPEndpoint):
-    async def get(self, request):
-        return JSONResponse({"value": math.pi})
+class Constant(HTTPEndpoint):
+    ...
 ```
 
 For more information on using TTL, see [Default time to live](https://rafalp.github.io/async-caches/backends/#default-time-to-live) in the `async-caches` documentation.
