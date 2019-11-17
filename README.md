@@ -104,11 +104,17 @@ For more information on using TTL, see [Default time to live](https://rafalp.git
 
 ### Cache control
 
-If you'd like to fine-tune how clients should cache the responses of an endpoint, use the `@cache_control()` decorator.
+If you'd like to add extra directives to the [`Cache-Control`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) header of responses returned by an endpoint, for example to fine-tune how clients should cache them, you can use the `@cache_control()` decorator.
 
-This decorator can be used independently of `CacheMiddleware`. It will add extra directives to the [`Cache-Control`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) header of the response. Note that if the response already has a `Cache-Control` header, keyword arguments passed to `@cache_control()` will be merged into it, overriding directives that are already present.
+Using `@cache_control()` is often preferable to manually setting the `Cache-Control` header on the response, as it will _add_ directives instead of replacing the existing ones.
 
-Using this decorator is often preferable to manually defining `Cache-Control` on the response, as it will _add_ directives instead of replacing the existing ones.
+If `Cache-Control` is already set on the response, pre-existing directives may be overridden by those passed `@cache_control()`. For example, if the response contains `Cache-Control: no-transform, must-revalidate` and you use `@cache_control(must_revalidate=False)`, then the `must-revalidate` directive will not be included in the final header.
+
+In particular, this allows you to override the TTL using `@cache_control(max_age=...)`. Note, however, that the minimum of the existing `max-age` (if set) and the one passed to `@cache_control()` will be used.
+
+**Note**: setting the `public` and `private` directives is not supported yet -- [Cache privacy](#cache-privacy).
+
+**Note**: `@cache_control()` is independant of `CacheMiddleware` and `@cached`: applying it will _not_ result in storing responses in the server-side cache.
 
 ```python
 from asgi_caches.decorators import cache_control
@@ -127,9 +133,7 @@ class Resource(HTTPEndpoint):
         ...
 ```
 
-See also the [HTTP Cache Directive Registry](https://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtml) for a list of valid cache directives (note that not all apply to responses), and the [MDN web docs on `Cache-Control`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) for more information on how to use these directives.
-
-**Limitation**: the `public` and `private` directives are not supported yet -- see below.
+For a list of valid cache directives, see the [HTTP Cache Directive Registry](https://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtml) (note that not all apply to responses). For more information on using these directives, see the [MDN web docs on `Cache-Control`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control).
 
 #### Cache privacy (TODO)
 
