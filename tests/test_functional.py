@@ -12,9 +12,12 @@ from starlette.responses import JSONResponse, PlainTextResponse, Response
 from asgi_caches.decorators import cache_control, cached
 from asgi_caches.middleware import CacheMiddleware
 
-cache = Cache("locmem://null", ttl=2 * 60)
+cache = Cache("locmem://default", ttl=2 * 60)
+special_cache = Cache("locmem://special", ttl=60)
 app = Starlette()
+
 pi_calls = 0
+e_calls = 0
 
 
 @app.route("/")
@@ -32,6 +35,16 @@ class Pi(HTTPEndpoint):
         return JSONResponse({"value": math.pi})
 
 
+@app.route("/exp")
+@cached(special_cache)
+class Exp(HTTPEndpoint):
+    async def get(self, request: Request) -> Response:
+        global e_calls
+        math.e
+        e_calls += 1
+        return JSONResponse({"value": math.e})
+
+
 sub_app = Starlette()
 sub_app.add_middleware(CacheMiddleware, cache=cache)
 
@@ -47,7 +60,7 @@ app.mount("/sub", sub_app)
 @pytest.fixture(name="client")
 async def fixture_client() -> typing.AsyncIterator[httpx.AsyncClient]:
     client = httpx.AsyncClient(app=app, base_url="http://testserver")
-    async with cache, client:
+    async with cache, special_cache, client:
         yield client
 
 
@@ -76,3 +89,14 @@ async def test_caching(client: httpx.AsyncClient) -> None:
     assert "Expires" in r.headers
     assert "Cache-Control" in r.headers
     assert r.headers["Cache-Control"] == "max-age=120"
+
+    r = await client.get("/exp")
+    assert r.status_code == 200
+    assert r.json() == {"value": math.e}
+    assert e_calls == 1
+    assert "Expires" in r.headers
+    assert "Cache-Control" in r.headers
+    assert r.headers["Cache-Control"] == "max-age=60"
+
+    r = await client.get("/exp")
+    assert e_calls == 1
