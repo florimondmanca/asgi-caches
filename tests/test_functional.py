@@ -24,7 +24,7 @@ async def home(request: Request) -> Response:
 
 @app.route("/pi")
 @cached(cache)
-@cache_control(must_revalidate=True)
+@cache_control(max_age=30, must_revalidate=True)
 class Pi(HTTPEndpoint):
     async def get(self, request: Request) -> Response:
         global pi_calls
@@ -65,7 +65,7 @@ async def test_caching(client: httpx.AsyncClient) -> None:
     assert pi_calls == 1
     assert "Expires" in r.headers
     assert "Cache-Control" in r.headers
-    assert r.headers["Cache-Control"] == "must-revalidate, max-age=120"
+    assert r.headers["Cache-Control"] == "max-age=30, must-revalidate"
 
     r = await client.get("/pi")
     assert pi_calls == 1
