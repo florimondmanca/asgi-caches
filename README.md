@@ -118,7 +118,7 @@ If you'd like to fine-tune how clients should cache the responses of an endpoint
 
 This decorator can be used independently of `CacheMiddleware`. It will add extra directives to the [`Cache-Control`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) header of the response. Note that if the response already has a `Cache-Control` header, keyword arguments passed to `@cache_control()` will be merged into it, overriding directives that are already present.
 
-Using this decorator is often preferable to manually defining `Cache-Control` on the response, as it will *add* directives instead of replacing the existing ones.
+Using this decorator is often preferable to manually defining `Cache-Control` on the response, as it will _add_ directives instead of replacing the existing ones.
 
 ```python
 from asgi_caches.decorators import cache_control
@@ -165,7 +165,7 @@ The cache middleware uses the `Vary` header present in responses to know by whic
 
 As a result of this mechanism, there are some rules relative to which point in the middleware stack cache middleware should be applied:
 
-- `CacheMiddleware` should be applied *after* middleware that modifies the `Vary` header. For example:
+- `CacheMiddleware` should be applied _after_ middleware that modifies the `Vary` header. For example:
 
 ```python
 from starlette.middleware.gzip import GZipMiddleware
@@ -174,7 +174,7 @@ app.add_middleware(GZipMiddleware)  # Adds 'Accept-Encoding'
 app.add_middleware(CacheMiddleware, cache=cache)
 ```
 
-- Similarly, it should be applied *before* middleware that may add something to the varying headers of the request. (As a contrived example, if you had a middleware that added `gzip` to `Accept-Encoding` to later decompress the resulting response body, then you'd need to place this middleware *before* `CacheMiddleware`.)
+- Similarly, it should be applied _before_ middleware that may add something to the varying headers of the request. (As a contrived example, if you had a middleware that added `gzip` to `Accept-Encoding` to later decompress the resulting response body, then you'd need to place this middleware _before_ `CacheMiddleware`.)
 
 ### Debugging
 
