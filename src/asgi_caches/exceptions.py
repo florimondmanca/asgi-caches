@@ -20,3 +20,10 @@ class ResponseNotCachable(ASGICachesException):
     def __init__(self, response: Response) -> None:
         super().__init__()
         self.response = response
+
+
+class DuplicateCaching(ASGICachesException):
+    """
+    Raised when more than one cache middleware
+    were detected in the middleware stack.
+    """

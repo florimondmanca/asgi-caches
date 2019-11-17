@@ -10,6 +10,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, PlainTextResponse, Response
 
 from asgi_caches.decorators import cache_control, cached
+from asgi_caches.exceptions import DuplicateCaching
 from asgi_caches.middleware import CacheMiddleware
 
 cache = Cache("locmem://default", ttl=2 * 60)
@@ -100,3 +101,20 @@ async def test_caching(client: httpx.AsyncClient) -> None:
 
     r = await client.get("/exp")
     assert e_calls == 1
+
+
+@pytest.mark.asyncio
+async def test_duplicate_caching() -> None:
+    app = Starlette()
+    app.add_middleware(CacheMiddleware, cache=cache)
+
+    @app.route("/duplicate_cache")
+    @cached(special_cache)
+    class DuplicateCache(HTTPEndpoint):
+        pass
+
+    client = httpx.AsyncClient(app=app, base_url="http://testserver")
+
+    async with cache, special_cache, client:
+        with pytest.raises(DuplicateCaching):
+            await client.get("/duplicate_cache")

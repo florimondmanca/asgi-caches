@@ -6,7 +6,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from .exceptions import RequestNotCachable, ResponseNotCachable
+from .exceptions import DuplicateCaching, RequestNotCachable, ResponseNotCachable
 from .utils.cache import get_from_cache, patch_cache_control, store_in_cache
 from .utils.logging import HIT_EXTRA, MISS_EXTRA, get_logger
 from .utils.misc import kvformat
@@ -31,6 +31,18 @@ class CacheMiddleware:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
+
+        if "__asgi_caches__" in scope:
+            raise DuplicateCaching(
+                "Another `CacheMiddleware` was detected in the middleware stack.\n"
+                "HINT: this exception probably occurred because:\n"
+                "- You wrapped an application around `CacheMiddleware` multiple "
+                "times.\n"
+                "- You tried to apply `@cached()` onto an endpoint, but "
+                "the application is already wrapped around a `CacheMiddleware`."
+            )
+
+        scope["__asgi_caches__"] = True
 
         responder = CacheResponder(self.app, cache=self.cache)
         await responder(scope, receive, send)
