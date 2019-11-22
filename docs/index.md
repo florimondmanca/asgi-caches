@@ -1,12 +1,9 @@
-# asgi-caches
-
-[![Build Status](https://travis-ci.com/florimondmanca/asgi-caches.svg?branch=master)](https://travis-ci.com/florimondmanca/asgi-caches)
-[![Coverage](https://codecov.io/gh/florimondmanca/asgi-caches/branch/master/graph/badge.svg)](https://codecov.io/gh/florimondmanca/asgi-caches)
-[![Package version](https://badge.fury.io/py/asgi-caches.svg)](https://pypi.org/project/asgi-caches)
+# Introduction
 
 `asgi-caches` provides middleware and utilities for adding server-side HTTP caching to ASGI applications. It is powered by [`async-caches`](https://rafalp.github.io/async-caches/), and inspired by Django's cache framework.
 
-**Note**: this project is in an "alpha" status. Several features still need to be implemented, and you should expect breaking API changes across minor versions.
+!!! warning
+    This project is in an "alpha" status. Several features still need to be implemented, and you should expect breaking API changes across minor versions.
 
 ## Features
 
@@ -22,8 +19,6 @@
 ```bash
 pip install "asgi-caches==0.*"
 ```
-
-## Quickstart
 
 ```python
 from asgi_caches.middleware import CacheMiddleware
@@ -45,12 +40,8 @@ This example:
 - Sets up an application (in this case, a raw-ASGI 'Hello, world!' app).
 - Applies caching on the entire application.
 
-For a deep dive into all features provided by `asgi-caches`, head to the [documentation](https://florimondmanca.github.io/asgi-caches/)!
+For a deep dive into all features provided by `asgi-caches`, head to the [User Guide](/usage/)!
 
 ## Credits
 
 Due credit goes to the Django developers and maintainers, as a lot of the API and implementation was directly inspired by the [Django cache framework](https://docs.djangoproject.com/en/2.2/topics/cache/).
-
-## License
-
-MIT

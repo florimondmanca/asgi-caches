@@ -1,0 +1,19 @@
+site_name: asgi-caches
+site_description: Server-side HTTP caching for ASGI applications, inspired by Django's cache framework
+
+theme:
+  name: material
+
+repo_name: florimondmanca/asgi-caches
+repo_url: https://github.com/florimondmanca/asgi-caches
+edit_uri: ""
+
+nav:
+  - Introduction: "index.md"
+  - User Guide: "usage.md"
+  - Changelog: "https://github.com/florimondmanca/asgi-caches/tree/master/CHANGELOG.md"
+
+markdown_extensions:
+  - admonition
+  - codehilite:
+      guess_lang: false

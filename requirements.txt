@@ -7,6 +7,8 @@ flake8-bugbear
 flake8-comprehensions
 isort
 httpx
+mkdocs
+mkdocs-material
 mypy
 nox
 pytest
