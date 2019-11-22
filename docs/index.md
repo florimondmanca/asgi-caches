@@ -20,6 +20,8 @@
 pip install "asgi-caches==0.*"
 ```
 
+## Quickstart
+
 ```python
 from asgi_caches.middleware import CacheMiddleware
 
