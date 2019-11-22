@@ -42,7 +42,7 @@ This example:
 - Sets up an application (in this case, a raw-ASGI 'Hello, world!' app).
 - Applies caching on the entire application.
 
-For a deep dive into all features provided by `asgi-caches`, head to the [User Guide](/usage/)!
+To learn more, head to the [User Guide](/usage/).
 
 ## Credits
 

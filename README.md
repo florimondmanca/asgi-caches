@@ -6,7 +6,7 @@
 
 `asgi-caches` provides middleware and utilities for adding server-side HTTP caching to ASGI applications. It is powered by [`async-caches`](https://rafalp.github.io/async-caches/), and inspired by Django's cache framework.
 
-Documentation: https://florimondmanca.github.io/asgi-caches/
+Documentation is available at: https://asgi-caches.florimond.dev
 
 **Note**: this project is in an "alpha" status. Several features still need to be implemented, and you should expect breaking API changes across minor versions.
 
@@ -47,7 +47,7 @@ This example:
 - Sets up an application (in this case, a raw-ASGI 'Hello, world!' app).
 - Applies caching on the entire application.
 
-For a deep dive into all features provided by `asgi-caches`, head to the [documentation](https://florimondmanca.github.io/asgi-caches/)!
+To learn more, head to the [documentation](https://asgi-caches.florimond.dev).
 
 ## Credits
 
