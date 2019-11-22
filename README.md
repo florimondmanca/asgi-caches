@@ -25,16 +25,17 @@ pip install asgi-caches
 
 ## Usage
 
-We'll use this sample [Starlette](https://www.starlete.io) application equipped with an in-memory cache as a supporting example:
+`asgi-caches` uses `async-caches` to interact with cache backends. This means you'll first need to [setup a `Cache`](https://rafalp.github.io/async-caches/backends/) and make sure it is [connected](https://rafalp.github.io/async-caches/backends/#connection) when your application is running.
+
+Here's an example setup with [Starlette](https://www.starlete.io) and an in-memory cache with a default time to live of 2 minutes:
 
 ```python
 from caches import Cache
 from starlette.applications import Starlette
 
-app = Starlette()
-cache = Cache("locmem://null", key_prefix="my-app", ttl=2 * 60)
-app.add_event_handler("startup", cache.connect)
-app.add_event_handler("shutdown", cache.disconnect)
+cache = Cache("locmem://null", ttl=2 * 60)
+
+app = Starlette(on_startup=[cache.connect], on_shutdown=[cache.disconnect])
 ```
 
 ### Application-wide caching
@@ -44,8 +45,10 @@ To cache all endpoints, wrap the application around `CacheMiddleware`:
 ```python
 from asgi_caches.middleware import CacheMiddleware
 
-app.add_middleware(CacheMiddleware, cache=cache)
+app = CacheMiddleware(app, cache=cache)
 ```
+
+**Note**: if your ASGI web framework provides a specific way of adding middleware, you'll probably want to use it instead of wrapping the app directly.
 
 This middleware applies the `Cache-Control` and `Expires` headers based on the cache `ttl` (see also [Time to live](#time-to-live)). These headers tell the browser how and for how long it should cache responses.
 
@@ -55,11 +58,12 @@ If you have multiple middleware, read [Order of middleware](#order-of-middleware
 
 If your ASGI web framework supports a notion of endpoints (a.k.a. "routes"), you can specify the cache policy on a given endpoint using the `@cached` decorator. This works regardless of whether `CacheMiddleware` is present.
 
-```python
-from starlette.endpoints import HTTPEndpoint
-from asgi_caches.decorators import cached
+Starlette example:
 
-@app.route("/users/{user_id:int}")
+```python
+from asgi_caches.decorators import cached
+from starlette.endpoints import HTTPEndpoint
+
 @cached(cache)
 class UserDetail(HTTPEndpoint):
     async def get(self, request):
@@ -72,13 +76,15 @@ Note that you can't apply `@cached` to methods of a class either. This is probab
 
 ### Disabling caching (TODO)
 
-To disable caching altogether on a given endpoint, use the `@never_cache` decorator:
+To disable caching altogether on a given endpoint, you can use the `@never_cache` decorator.
+
+Starlette example:
 
 ```python
 from datetime import datetime
 from asgi_caches.decorators import never_cache
+from starlette.endpoints import HTTPEndpoint
 
-@app.route("/datetime")
 @never_cache
 class DateTime(HTTPEndpoint):
     async def get(self, request):
@@ -91,10 +97,14 @@ Time to live (TTL) refers to how long (in seconds) a response can stay in the ca
 
 Components in `asgi-caches` will use the TTL set on the `Cache` instance by default.
 
-You can override the TTL on a per-view basis by setting the `max-age` cache-control directive (for details, see [Cache control](#cache-control) below):
+You can override the TTL on a per-view basis by setting the `max-age` cache-control directive (for details, see [Cache control](#cache-control) below).
+
+Starlette example:
 
 ```python
-@app.route("/constant")
+from asgi_caches.decorators import cache_control
+from starlette.endpoints import HTTPEndpoint
+
 @cache_control(max_age=60 * 60)  # Cache for one hour.
 class Constant(HTTPEndpoint):
     ...
@@ -116,10 +126,12 @@ In particular, this allows you to override the TTL using `@cache_control(max_age
 
 **Note**: `@cache_control()` is independant of `CacheMiddleware` and `@cached`: applying it will _not_ result in storing responses in the server-side cache.
 
+Starlette example:
+
 ```python
 from asgi_caches.decorators import cache_control
+from starlette.endpoints import HTTPEndpoint
 
-@app.route("/")
 @cache_control(
     # Indicate that cache systems MUST refetch
     # the response once it has expired.
@@ -142,7 +154,9 @@ One particular use case for `@cache_control()` is cache privacy. There may be mu
 You can achieve this by using the `private` cache-control directive:
 
 ```python
-@app.get("/accounts/{user_id}")
+from asgi_caches.decorators import cache_control
+from starlette.endpoints import HTTPEndpoint
+
 @cache_control(private=True)
 class BankAccount(HTTPEndpoint):
     async def get(self, request):
@@ -164,8 +178,8 @@ As a result of this mechanism, there are some rules relative to which point in t
 ```python
 from starlette.middleware.gzip import GZipMiddleware
 
-app.add_middleware(GZipMiddleware)  # Adds 'Accept-Encoding'
-app.add_middleware(CacheMiddleware, cache=cache)
+app = GZipMiddleware(app)  # Adds 'Accept-Encoding'
+app = CacheMiddleware(app, cache=cache)
 ```
 
 - Similarly, it should be applied _before_ middleware that may add something to the varying headers of the request. (As a contrived example, if you had a middleware that added `gzip` to `Accept-Encoding` to later decompress the resulting response body, then you'd need to place this middleware _before_ `CacheMiddleware`.)

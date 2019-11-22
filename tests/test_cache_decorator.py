@@ -5,6 +5,7 @@ from starlette.applications import Starlette
 from starlette.endpoints import HTTPEndpoint
 from starlette.requests import Request
 from starlette.responses import PlainTextResponse, Response
+from starlette.routing import Route
 from starlette.types import Receive, Scope, Send
 
 from asgi_caches.decorators import cached
@@ -44,7 +45,6 @@ async def test_decorator_raw_asgi() -> None:
 
 @pytest.mark.asyncio
 async def test_decorator_starlette_endpoint() -> None:
-    app = Starlette()
     cache = Cache("locmem://null", ttl=2 * 60)
 
     @cached(cache)
@@ -60,9 +60,7 @@ async def test_decorator_starlette_endpoint() -> None:
     spy = CachedHome.app = CacheSpy(CachedHome.app)
     users_spy = CacheSpy(UncachedUsers)
 
-    app.add_route("/", CachedHome)
-    app.add_route("/users", users_spy)
-
+    app = Starlette(routes=[Route("/", CachedHome), Route("/users", users_spy)])
     client = httpx.AsyncClient(app=app, base_url="http://testserver")
 
     async with cache, client:
