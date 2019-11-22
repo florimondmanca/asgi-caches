@@ -6,8 +6,10 @@ import pytest
 from caches import Cache
 from starlette.applications import Starlette
 from starlette.endpoints import HTTPEndpoint
+from starlette.middleware import Middleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse, PlainTextResponse, Response
+from starlette.routing import Mount, Route
 
 from asgi_caches.decorators import cache_control, cached
 from asgi_caches.exceptions import DuplicateCaching
@@ -15,18 +17,15 @@ from asgi_caches.middleware import CacheMiddleware
 
 cache = Cache("locmem://default", ttl=2 * 60)
 special_cache = Cache("locmem://special", ttl=60)
-app = Starlette()
 
 pi_calls = 0
 e_calls = 0
 
 
-@app.route("/")
 async def home(request: Request) -> Response:
     return PlainTextResponse("Hello, world!")
 
 
-@app.route("/pi")
 @cached(cache)
 @cache_control(max_age=30, must_revalidate=True)
 class Pi(HTTPEndpoint):
@@ -36,7 +35,6 @@ class Pi(HTTPEndpoint):
         return JSONResponse({"value": math.pi})
 
 
-@app.route("/exp")
 @cached(special_cache)
 class Exp(HTTPEndpoint):
     async def get(self, request: Request) -> Response:
@@ -46,16 +44,23 @@ class Exp(HTTPEndpoint):
         return JSONResponse({"value": math.e})
 
 
-sub_app = Starlette()
-sub_app.add_middleware(CacheMiddleware, cache=cache)
-
-
-@sub_app.route("/")
 async def sub_home(request: Request) -> Response:
     return PlainTextResponse("Hello, sub world!")
 
 
-app.mount("/sub", sub_app)
+sub_app = Starlette(
+    routes=[Route("/", sub_home)], middleware=[Middleware(CacheMiddleware, cache=cache)]
+)
+
+
+app = Starlette(
+    routes=[
+        Route("/", home),
+        Route("/pi", Pi),
+        Route("/exp", Exp),
+        Mount("/sub", sub_app),
+    ],
+)
 
 
 @pytest.fixture(name="client")
@@ -105,13 +110,17 @@ async def test_caching(client: httpx.AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_duplicate_caching() -> None:
-    app = Starlette()
-    app.add_middleware(CacheMiddleware, cache=cache)
-
-    @app.route("/duplicate_cache")
-    @cached(special_cache)
     class DuplicateCache(HTTPEndpoint):
         pass
+
+    app = Starlette(
+        routes=[
+            Route(
+                "/duplicate_cache", CacheMiddleware(DuplicateCache, cache=special_cache)
+            )
+        ],
+        middleware=[Middleware(CacheMiddleware, cache=cache)],
+    )
 
     client = httpx.AsyncClient(app=app, base_url="http://testserver")
 
