@@ -1,0 +1,743 @@
+
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
+      
+        <meta name="description" content="Server-side HTTP caching for ASGI applications, inspired by Django's cache framework">
+      
+      
+      
+      
+        <meta name="lang:clipboard.copy" content="Copy to clipboard">
+      
+        <meta name="lang:clipboard.copied" content="Copied to clipboard">
+      
+        <meta name="lang:search.language" content="en">
+      
+        <meta name="lang:search.pipeline.stopwords" content="True">
+      
+        <meta name="lang:search.pipeline.trimmer" content="True">
+      
+        <meta name="lang:search.result.none" content="No matching documents">
+      
+        <meta name="lang:search.result.one" content="1 matching document">
+      
+        <meta name="lang:search.result.other" content="# matching documents">
+      
+        <meta name="lang:search.tokenizer" content="[\s\-]+">
+      
+      <link rel="shortcut icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.0.4, mkdocs-material-4.5.0">
+    
+    
+      
+        <title>User Guide - asgi-caches</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/application.1b62728e.css">
+      
+      
+    
+    
+      <script src="../assets/javascripts/modernizr.268332fc.js"></script>
+    
+    
+      
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700|Roboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto","Helvetica Neue",Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono","Courier New",Courier,monospace}</style>
+      
+    
+    <link rel="stylesheet" href="../assets/fonts/material-icons.css">
+    
+    
+    
+      
+    
+    
+  </head>
+  
+    <body dir="ltr">
+  
+    <svg class="md-svg">
+      <defs>
+        
+        
+          <svg xmlns="http://www.w3.org/2000/svg" width="416" height="448" viewBox="0 0 416 448" id="__github"><path fill="currentColor" d="M160 304q0 10-3.125 20.5t-10.75 19T128 352t-18.125-8.5-10.75-19T96 304t3.125-20.5 10.75-19T128 256t18.125 8.5 10.75 19T160 304zm160 0q0 10-3.125 20.5t-10.75 19T288 352t-18.125-8.5-10.75-19T256 304t3.125-20.5 10.75-19T288 256t18.125 8.5 10.75 19T320 304zm40 0q0-30-17.25-51T296 232q-10.25 0-48.75 5.25Q229.5 240 208 240t-39.25-2.75Q130.75 232 120 232q-29.5 0-46.75 21T56 304q0 22 8 38.375t20.25 25.75 30.5 15 35 7.375 37.25 1.75h42q20.5 0 37.25-1.75t35-7.375 30.5-15 20.25-25.75T360 304zm56-44q0 51.75-15.25 82.75-9.5 19.25-26.375 33.25t-35.25 21.5-42.5 11.875-42.875 5.5T212 416q-19.5 0-35.5-.75t-36.875-3.125-38.125-7.5-34.25-12.875T37 371.5t-21.5-28.75Q0 312 0 260q0-59.25 34-99-6.75-20.5-6.75-42.5 0-29 12.75-54.5 27 0 47.5 9.875t47.25 30.875Q171.5 96 212 96q37 0 70 8 26.25-20.5 46.75-30.25T376 64q12.75 25.5 12.75 54.5 0 21.75-6.75 42 34 40 34 99.5z"/></svg>
+        
+      </defs>
+    </svg>
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
+    
+      <a href="#user-guide" tabindex="1" class="md-skip">
+        Skip to content
+      </a>
+    
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid">
+    <div class="md-flex">
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <a href=".." title="asgi-caches" class="md-header-nav__button md-logo">
+          
+            <i class="md-icon"></i>
+          
+        </a>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--menu md-header-nav__button" for="__drawer"></label>
+      </div>
+      <div class="md-flex__cell md-flex__cell--stretch">
+        <div class="md-flex__ellipsis md-header-nav__title" data-md-component="title">
+          
+            <span class="md-header-nav__topic">
+              asgi-caches
+            </span>
+            <span class="md-header-nav__topic">
+              
+                User Guide
+              
+            </span>
+          
+        </div>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          <label class="md-icon md-icon--search md-header-nav__button" for="__search"></label>
+          
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query" data-md-state="active">
+      <label class="md-icon md-search__icon" for="__search"></label>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset" tabindex="-1">
+        &#xE5CD;
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="result">
+          <div class="md-search-result__meta">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+        
+      </div>
+      
+        <div class="md-flex__cell md-flex__cell--shrink">
+          <div class="md-header-nav__source">
+            
+
+
+  
+
+<a href="https://github.com/florimondmanca/asgi-caches" title="Go to repository" class="md-source" data-md-source="github">
+  
+    <div class="md-source__icon">
+      <svg viewBox="0 0 24 24" width="24" height="24">
+        <use xlink:href="#__github" width="24" height="24"></use>
+      </svg>
+    </div>
+  
+  <div class="md-source__repository">
+    florimondmanca/asgi-caches
+  </div>
+</a>
+          </div>
+        </div>
+      
+    </div>
+  </nav>
+</header>
+    
+    <div class="md-container">
+      
+        
+      
+      
+      <main class="md-main" role="main">
+        <div class="md-main__inner md-grid" data-md-component="container">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" data-md-level="0">
+  <label class="md-nav__title md-nav__title--site" for="__drawer">
+    <a href=".." title="asgi-caches" class="md-nav__button md-logo">
+      
+        <i class="md-icon"></i>
+      
+    </a>
+    asgi-caches
+  </label>
+  
+    <div class="md-nav__source">
+      
+
+
+  
+
+<a href="https://github.com/florimondmanca/asgi-caches" title="Go to repository" class="md-source" data-md-source="github">
+  
+    <div class="md-source__icon">
+      <svg viewBox="0 0 24 24" width="24" height="24">
+        <use xlink:href="#__github" width="24" height="24"></use>
+      </svg>
+    </div>
+  
+  <div class="md-source__repository">
+    florimondmanca/asgi-caches
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href=".." title="Introduction" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        User Guide
+      </label>
+    
+    <a href="./" title="User Guide" class="md-nav__link md-nav__link--active">
+      User Guide
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    Getting started
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#enabling-caching" class="md-nav__link">
+    Enabling caching
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#application-wide-caching" class="md-nav__link">
+    Application-wide caching
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#per-endpoint-caching" class="md-nav__link">
+    Per-endpoint caching
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caching-fine-tuning" class="md-nav__link">
+    Caching fine-tuning
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#time-to-live" class="md-nav__link">
+    Time to live
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cache-control" class="md-nav__link">
+    Cache-Control
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cache-privacy" class="md-nav__link">
+    Cache privacy
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disabling-caching" class="md-nav__link">
+    Disabling caching
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#order-of-middleware" class="md-nav__link">
+    Order of middleware
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#logging" class="md-nav__link">
+    Logging
+  </a>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="https://github.com/florimondmanca/asgi-caches/tree/master/CHANGELOG.md" title="Changelog" class="md-nav__link">
+      Changelog
+    </a>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    Getting started
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#enabling-caching" class="md-nav__link">
+    Enabling caching
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#application-wide-caching" class="md-nav__link">
+    Application-wide caching
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#per-endpoint-caching" class="md-nav__link">
+    Per-endpoint caching
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caching-fine-tuning" class="md-nav__link">
+    Caching fine-tuning
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#time-to-live" class="md-nav__link">
+    Time to live
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cache-control" class="md-nav__link">
+    Cache-Control
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cache-privacy" class="md-nav__link">
+    Cache privacy
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disabling-caching" class="md-nav__link">
+    Disabling caching
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#order-of-middleware" class="md-nav__link">
+    Order of middleware
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#logging" class="md-nav__link">
+    Logging
+  </a>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                
+                <h1 id="user-guide">User Guide</h1>
+<h2 id="getting-started">Getting started</h2>
+<p><code>asgi-caches</code> uses <code>async-caches</code> to interact with cache backends. This means you'll first need to <a href="https://rafalp.github.io/async-caches/backends/">setup a <code>Cache</code></a> and make sure it is <a href="https://rafalp.github.io/async-caches/backends/#connection">connected</a> for when your application responds to requests.</p>
+<p>Here's an example setup with <a href="https://www.starlete.io">Starlette</a> and an in-memory cache with a default time to live of 2 minutes:</p>
+<div class="codehilite"><pre><span></span><span class="kn">from</span> <span class="nn">caches</span> <span class="kn">import</span> <span class="n">Cache</span>
+<span class="kn">from</span> <span class="nn">starlette.applications</span> <span class="kn">import</span> <span class="n">Starlette</span>
+
+<span class="n">cache</span> <span class="o">=</span> <span class="n">Cache</span><span class="p">(</span><span class="s2">&quot;locmem://null&quot;</span><span class="p">,</span> <span class="n">ttl</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Starlette</span><span class="p">(</span><span class="n">on_startup</span><span class="o">=</span><span class="p">[</span><span class="n">cache</span><span class="o">.</span><span class="n">connect</span><span class="p">],</span> <span class="n">on_shutdown</span><span class="o">=</span><span class="p">[</span><span class="n">cache</span><span class="o">.</span><span class="n">disconnect</span><span class="p">])</span>
+</pre></div>
+
+
+<h2 id="enabling-caching">Enabling caching</h2>
+<p>There are two ways to enable HTTP caching on an application: on an entire application, or on a specific endpoint. Both rely on <code>CacheMiddleware</code>, an ASGI middleware.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You cannot use endpoint-level caching if application-level caching is enabled.</p>
+<p>As a rule of thumb, you should explicitly specify which endpoints should be cached as soon as you need anything more granular than caching all endpoints on the application.</p>
+</div>
+<h3 id="application-wide-caching">Application-wide caching</h3>
+<p>To cache all endpoints, wrap the application around <code>CacheMiddleware</code>:</p>
+<div class="codehilite"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_caches.middleware</span> <span class="kn">import</span> <span class="n">CacheMiddleware</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">CacheMiddleware</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="n">cache</span><span class="p">)</span>
+</pre></div>
+
+
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>If your ASGI web framework provides a specific way of adding middleware, you'll probably want to use it instead of wrapping the app directly.</p>
+</div>
+<p>This middleware applies the <code>Cache-Control</code> and <code>Expires</code> headers based on the cache <code>ttl</code> (see also <a href="#time-to-live">Time to live</a>). These headers tell the browser how and for how long it should cache responses.</p>
+<p>If you have multiple middleware, read <a href="#order-of-middleware">Order of middleware</a> to know at which point in the stack <code>CacheMiddleware</code> should be applied.</p>
+<h3 id="per-endpoint-caching">Per-endpoint caching</h3>
+<p>If your ASGI web framework supports a notion of endpoints (a.k.a. "routes"), you can specify the cache policy on a given endpoint using the <code>@cached</code> decorator. This works regardless of whether <code>CacheMiddleware</code> is present.</p>
+<p>Starlette example:</p>
+<div class="codehilite"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_caches.decorators</span> <span class="kn">import</span> <span class="n">cached</span>
+<span class="kn">from</span> <span class="nn">starlette.endpoints</span> <span class="kn">import</span> <span class="n">HTTPEndpoint</span>
+
+<span class="nd">@cached</span><span class="p">(</span><span class="n">cache</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">UserDetail</span><span class="p">(</span><span class="n">HTTPEndpoint</span><span class="p">):</span>
+    <span class="n">async</span> <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+        <span class="o">...</span>
+</pre></div>
+
+
+<p>Note that the decorated object should be an ASGI callable. This is why the code snippet above uses a Starlette <a href="https://www.starlette.io/endpoints/">endpoint</a> (a.k.a. class-based view) instead of a function-based view. (Starlette endpoints implement the ASGI interface, while function-based views don't.)</p>
+<p>Note that you can't apply <code>@cached</code> to methods of a class either. This is probably fine though, as you shouldn't need to specify which methods support caching: <code>asgi-caches</code> will only ever cache "safe" requests, i.e. GET and HEAD.</p>
+<h2 id="caching-fine-tuning">Caching fine-tuning</h2>
+<h3 id="time-to-live">Time to live</h3>
+<p>Time to live (TTL) refers to how long (in seconds) a response can stay in the cache before it expires.</p>
+<p>Components in <code>asgi-caches</code> will use the TTL set on the <code>Cache</code> instance by default.</p>
+<p>You can override the TTL on a per-view basis by setting the <code>max-age</code> cache-control directive (for details, see <a href="#cache-control">Cache control</a> below).</p>
+<p>Starlette example:</p>
+<div class="codehilite"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_caches.decorators</span> <span class="kn">import</span> <span class="n">cache_control</span>
+<span class="kn">from</span> <span class="nn">starlette.endpoints</span> <span class="kn">import</span> <span class="n">HTTPEndpoint</span>
+
+<span class="nd">@cache_control</span><span class="p">(</span><span class="n">max_age</span><span class="o">=</span><span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>  <span class="c1"># Cache for one hour.</span>
+<span class="k">class</span> <span class="nc">Constant</span><span class="p">(</span><span class="n">HTTPEndpoint</span><span class="p">):</span>
+    <span class="o">...</span>
+</pre></div>
+
+
+<p>For more information on using TTL, see <a href="https://rafalp.github.io/async-caches/backends/#default-time-to-live">Default time to live</a> in the <code>async-caches</code> documentation.</p>
+<h3 id="cache-control">Cache-Control</h3>
+<p>If you'd like to add extra directives to the <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control"><code>Cache-Control</code></a> header of responses returned by an endpoint, for example to fine-tune how clients should cache them, you can use the <code>@cache_control()</code> decorator.</p>
+<p>Using <code>@cache_control()</code> is often preferable to manually setting the <code>Cache-Control</code> header on the response, as it will <em>add</em> directives instead of replacing the existing ones.</p>
+<p>If <code>Cache-Control</code> is already set on the response, pre-existing directives may be overridden by those passed <code>@cache_control()</code>. For example, if the response contains <code>Cache-Control: no-transform, must-revalidate</code> and you use <code>@cache_control(must_revalidate=False)</code>, then the <code>must-revalidate</code> directive will not be included in the final header.</p>
+<p>In particular, this allows you to override the TTL using <code>@cache_control(max_age=...)</code>. Note, however, that the minimum of the existing <code>max-age</code> (if set) and the one passed to <code>@cache_control()</code> will be used.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Setting the <code>public</code> and <code>private</code> directives is not supported yet -- <a href="#cache-privacy">Cache privacy</a>.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p><code>@cache_control()</code> is independant of <code>CacheMiddleware</code> and <code>@cached</code>: applying it will <em>not</em> result in storing responses in the server-side cache.</p>
+</div>
+<p>Starlette example:</p>
+<div class="codehilite"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_caches.decorators</span> <span class="kn">import</span> <span class="n">cache_control</span>
+<span class="kn">from</span> <span class="nn">starlette.endpoints</span> <span class="kn">import</span> <span class="n">HTTPEndpoint</span>
+
+<span class="nd">@cache_control</span><span class="p">(</span>
+    <span class="c1"># Indicate that cache systems MUST refetch</span>
+    <span class="c1"># the response once it has expired.</span>
+    <span class="n">must_revalidate</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="c1"># Indicate that cache systems MUST NOT</span>
+    <span class="c1"># transform the response (e.g. convert between image formats).</span>
+    <span class="n">no_transform</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">class</span> <span class="nc">Resource</span><span class="p">(</span><span class="n">HTTPEndpoint</span><span class="p">):</span>
+    <span class="n">async</span> <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+        <span class="o">...</span>
+</pre></div>
+
+
+<p>For a list of valid cache directives, see the <a href="https://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtml">HTTP Cache Directive Registry</a> (note that not all apply to responses). For more information on using these directives, see the <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control">MDN web docs on <code>Cache-Control</code></a>.</p>
+<h4 id="cache-privacy">Cache privacy</h4>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This section documents functionality that has not been implemented yet.</p>
+</div>
+<p>One particular use case for <code>@cache_control()</code> is cache privacy. There may be multiple intermediate caching systems between your server and your clients (e.g. a CDN, the user's ISP, etc.). If an endpoint returns sensitive user data (e.g. a bank account number), you probably want to tell the cache that this data is private, and should not be cached at all.</p>
+<p>You can achieve this by using the <code>private</code> cache-control directive:</p>
+<div class="codehilite"><pre><span></span><span class="kn">from</span> <span class="nn">asgi_caches.decorators</span> <span class="kn">import</span> <span class="n">cache_control</span>
+<span class="kn">from</span> <span class="nn">starlette.endpoints</span> <span class="kn">import</span> <span class="n">HTTPEndpoint</span>
+
+<span class="nd">@cache_control</span><span class="p">(</span><span class="n">private</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">BankAccount</span><span class="p">(</span><span class="n">HTTPEndpoint</span><span class="p">):</span>
+    <span class="n">async</span> <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+        <span class="o">...</span>
+</pre></div>
+
+
+<p>Alternatively, you can explicitly mark a resource as public by passing <code>public=True</code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code>private</code> and <code>public</code> are exclusive (only one of them can be passed).</p>
+</div>
+<h3 id="disabling-caching">Disabling caching</h3>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This section documents functionality that has not been implemented yet.</p>
+</div>
+<p>To disable caching altogether on a given endpoint, you can use the <code>@never_cache</code> decorator.</p>
+<p>Starlette example:</p>
+<div class="codehilite"><pre><span></span><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">asgi_caches.decorators</span> <span class="kn">import</span> <span class="n">never_cache</span>
+<span class="kn">from</span> <span class="nn">starlette.endpoints</span> <span class="kn">import</span> <span class="n">HTTPEndpoint</span>
+
+<span class="nd">@never_cache</span>
+<span class="k">class</span> <span class="nc">DateTime</span><span class="p">(</span><span class="n">HTTPEndpoint</span><span class="p">):</span>
+    <span class="n">async</span> <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">JSONResponse</span><span class="p">({</span><span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">utcformat</span><span class="p">()})</span>
+</pre></div>
+
+
+<h2 id="order-of-middleware">Order of middleware</h2>
+<p>The cache middleware uses the <code>Vary</code> header present in responses to know by which request header it should vary the cache. For example, if a response contains <code>Vary: Accept-Encoding</code>, a request containing <code>Accept-Encoding: gzip</code> won't result in using the same cache entry than a request containing <code>Accept-Encoding: identity</code>.</p>
+<p>As a result of this mechanism, there are some rules relative to which point in the middleware stack cache middleware should be applied:</p>
+<ul>
+<li><code>CacheMiddleware</code> should be applied <em>after</em> middleware that modifies the <code>Vary</code> header. For example:</li>
+</ul>
+<div class="codehilite"><pre><span></span><span class="kn">from</span> <span class="nn">starlette.middleware.gzip</span> <span class="kn">import</span> <span class="n">GZipMiddleware</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">GZipMiddleware</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>  <span class="c1"># Adds &#39;Accept-Encoding&#39;</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">CacheMiddleware</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="n">cache</span><span class="p">)</span>
+</pre></div>
+
+
+<ul>
+<li>Similarly, it should be applied <em>before</em> middleware that may add something to the varying headers of the request. For example, if you had a middleware that added authentication session cookies, and <code>Cookie</code> is present in the <code>Vary</code> header of responses, then you'd need to place <code>CacheMiddleware</code> <em>before</em> this middleware.</li>
+</ul>
+<h2 id="logging">Logging</h2>
+<p><code>asgi-caches</code> provides logs that contain detail about what is going on: cache hits, cache misses, cache key derivation, etc. These logs are particularly useful when investigating bugs or unexpected behavior.</p>
+<p>If using <a href="https://www.uvicorn.org">Uvicorn</a> or another logging-aware program, <code>DEBUG</code> and <code>TRACE</code> logs should be activated when serving with the corresponding log level.</p>
+<p>For example, Uvicorn should show <code>asgi-caches</code> debug logs when run with <code>--log-level=debug</code>:</p>
+<div class="codehilite"><pre><span></span><span class="gp">$</span> uvicorn debug.app:app --log-level<span class="o">=</span>debug
+<span class="go">INFO:     Started server process [95022]</span>
+<span class="go">INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)</span>
+<span class="go">INFO:     Waiting for application startup.</span>
+<span class="go">INFO:     Application startup complete.</span>
+<span class="go">DEBUG:    cache_lookup MISS</span>
+<span class="go">DEBUG:    store_in_cache max_age=120</span>
+<span class="go">INFO:     127.0.0.1:59895 - &quot;GET / HTTP/1.1&quot; 200 OK</span>
+<span class="go">DEBUG:    cache_lookup HIT</span>
+<span class="go">INFO:     127.0.0.1:59897 - &quot;GET / HTTP/1.1&quot; 200 OK</span>
+</pre></div>
+
+
+<p>If you need to manually activate logs, you can set the <code>ASGI_CACHES_LOG_LEVEL</code> environment variable to one of the following values (case insensitive):</p>
+<ul>
+<li><code>debug</code>: general-purpose output on cache hits, cache misses, and storage of responses in the cache.</li>
+<li><code>trace</code>: very detailed output on all operations performed. This includes calls to the remote cache system, computation of cache keys, reasons why responses are not cached, etc.</li>
+</ul>
+                
+                  
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid">
+        
+          <a href=".." title="Introduction" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
+            </div>
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Introduction
+              </span>
+            </div>
+          </a>
+        
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        powered by
+        <a href="https://www.mkdocs.org">MkDocs</a>
+        and
+        <a href="https://squidfunk.github.io/mkdocs-material/">
+          Material for MkDocs</a>
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../assets/javascripts/application.a8b5e56f.js"></script>
+      
+      <script>app.initialize({version:"1.0.4",url:{base:".."}})</script>
+      
+    
+  </body>
+</html>
