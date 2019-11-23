@@ -5,11 +5,15 @@ import typing
 import httpx
 import pytest
 from caches import Cache
+from starlette.applications import Starlette
 from starlette.datastructures import Headers
+from starlette.endpoints import HTTPEndpoint
+from starlette.middleware import Middleware
 from starlette.responses import PlainTextResponse, StreamingResponse
+from starlette.routing import Route
 from starlette.types import Receive, Scope, Send
 
-from asgi_caches.exceptions import CacheNotConnected
+from asgi_caches.exceptions import CacheNotConnected, DuplicateCaching
 from asgi_caches.middleware import CacheMiddleware
 from tests.utils import CacheSpy, ComparableHTTPXResponse, mock_receive, mock_send
 
@@ -259,3 +263,27 @@ async def test_cache_not_connected() -> None:
     exc = ctx.value
     assert exc.cache is cache
     assert str(cache.url) in str(exc)
+
+
+@pytest.mark.asyncio
+async def test_duplicate_caching() -> None:
+    cache = Cache("locmem://default")
+    special_cache = Cache("locmem://special")
+
+    class DuplicateCache(HTTPEndpoint):
+        pass
+
+    app = Starlette(
+        routes=[
+            Route(
+                "/duplicate_cache", CacheMiddleware(DuplicateCache, cache=special_cache)
+            )
+        ],
+        middleware=[Middleware(CacheMiddleware, cache=cache)],
+    )
+
+    client = httpx.AsyncClient(app=app, base_url="http://testserver")
+
+    async with cache, special_cache, client:
+        with pytest.raises(DuplicateCaching):
+            await client.get("/duplicate_cache")
