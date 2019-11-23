@@ -1,3 +1,4 @@
+from caches import Cache
 from starlette.requests import Request
 from starlette.responses import Response
 
@@ -27,3 +28,16 @@ class DuplicateCaching(ASGICachesException):
     Raised when more than one cache middleware
     were detected in the middleware stack.
     """
+
+
+class CacheNotConnected(ASGICachesException):
+    """
+    Raised when trying to use the cache, but it isn't connected.
+    """
+
+    def __init__(self, cache: Cache) -> None:
+        super().__init__(
+            f"Cache at '{cache.url}' is not connected.\n"
+            "HINT: https://rafalp.github.io/async-caches/backends/#connection"
+        )
+        self.cache = cache

@@ -6,7 +6,12 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from .exceptions import DuplicateCaching, RequestNotCachable, ResponseNotCachable
+from .exceptions import (
+    CacheNotConnected,
+    DuplicateCaching,
+    RequestNotCachable,
+    ResponseNotCachable,
+)
 from .utils.cache import get_from_cache, patch_cache_control, store_in_cache
 from .utils.logging import HIT_EXTRA, MISS_EXTRA, get_logger
 from .utils.misc import kvformat
@@ -59,6 +64,9 @@ class CacheResponder:
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         assert scope["type"] == "http"
+
+        if not self.cache.is_connected:
+            raise CacheNotConnected(self.cache)
 
         request = Request(scope)
 

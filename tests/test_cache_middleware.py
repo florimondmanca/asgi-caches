@@ -9,6 +9,7 @@ from starlette.datastructures import Headers
 from starlette.responses import PlainTextResponse, StreamingResponse
 from starlette.types import Receive, Scope, Send
 
+from asgi_caches.exceptions import CacheNotConnected
 from asgi_caches.middleware import CacheMiddleware
 from tests.utils import CacheSpy, ComparableHTTPXResponse, mock_receive, mock_send
 
@@ -243,3 +244,18 @@ async def test_cookies_in_response_and_cookieless_request() -> None:
         assert r.status_code == 200
         assert r.text == "Hello, world!"
         assert spy.misses == 2
+
+
+@pytest.mark.asyncio
+async def test_cache_not_connected() -> None:
+    cache = Cache("locmem://null", ttl=2 * 60)
+    app = CacheMiddleware(PlainTextResponse("Hello, world!"), cache=cache)
+    client = httpx.AsyncClient(app=app, base_url="http://testserver")
+
+    async with client:
+        with pytest.raises(CacheNotConnected) as ctx:
+            await client.get("/")
+
+    exc = ctx.value
+    assert exc.cache is cache
+    assert str(cache.url) in str(exc)
